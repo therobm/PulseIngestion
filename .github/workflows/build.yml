@@ -1,0 +1,89 @@
+name: Build and Release
+
+# Unified build strategy (shared with Pulse/Flatline). A merge to master
+# publishes a self-contained win-x64 single-file exe versioned straight from the
+# VERSION file (Major.Minor.Build), then increments the build component in
+# VERSION and commits it back so the next release picks up the new number. To
+# bump the major or minor version, edit VERSION by hand and reset the build
+# (e.g. 0.1.0 -> 0.2.0). The build commit is made with the repo token and marked
+# [skip ci], so it does not trigger another run. The self-contained/single-file
+# publish settings live in PulseIngestion/PulseIngestion.csproj.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          version=$(tr -d ' \t\r\n' < VERSION)
+          if ! echo "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "VERSION must be MAJOR.MINOR.BUILD; got '$version'" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${version}"
+
+      - name: Publish
+        shell: bash
+        run: |
+          dotnet publish PulseIngestion/PulseIngestion.csproj \
+            -c Release \
+            -p:Version="${{ steps.version.outputs.version }}" \
+            -o publish
+
+      - name: Stage release artifact
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          mv publish/PulseIngestion.exe "artifacts/PulseIngestion-${{ steps.version.outputs.version }}-win-x64.exe"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          files: artifacts/PulseIngestion-${{ steps.version.outputs.version }}-win-x64.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+      - name: Increment build number in VERSION
+        shell: bash
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          major=$(echo "$version" | cut -d. -f1)
+          minor=$(echo "$version" | cut -d. -f2)
+          build=$(echo "$version" | cut -d. -f3)
+          next="${major}.${minor}.$((build + 1))"
+          printf '%s\n' "$next" > VERSION
+          git config user.name "Vibratron"
+          git config user.email "vibratron@flatline.local"
+          git add VERSION
+          git commit -m "Bump build to ${next} [skip ci]"
+          git push origin HEAD:master

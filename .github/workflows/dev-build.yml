@@ -1,0 +1,55 @@
+name: Dev Build
+
+# Manual, on-demand build of a test exe off any branch. Produces the same
+# self-contained win-x64 single-file exe as the release workflow, versioned
+# from the VERSION file with a -dev suffix, and uploaded as a build artifact.
+# It never cuts a release and never bumps the build number.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          version="$(tr -d ' \t\r\n' < VERSION)-dev"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${version}"
+
+      - name: Publish
+        shell: bash
+        run: |
+          dotnet publish PulseIngestion/PulseIngestion.csproj \
+            -c Release \
+            -p:Version="${{ steps.version.outputs.version }}" \
+            -o publish
+
+      - name: Stage artifact
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          mv publish/PulseIngestion.exe "artifacts/PulseIngestion-${{ steps.version.outputs.version }}-win-x64.exe"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PulseIngestion-dev-${{ github.sha }}
+          path: artifacts/PulseIngestion-${{ steps.version.outputs.version }}-win-x64.exe
+          retention-days: 14
+          if-no-files-found: error

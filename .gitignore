@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+
+# IDE / editor state
+.vs/
+.idea/
+*.user
+*.suo
+
+# Runtime config (machine-specific paths)
+config.txt
+
+# Logs
+*.log
+logs/
+
+# Local credentials / overrides
+*.local.md
+*.local.json
