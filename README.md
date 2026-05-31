@@ -20,7 +20,8 @@ environment before a real run:
 | `MusicSource` | Directory scanned for files to convert. |
 | `MusicDestination` | Output directory. |
 | `ThreadCount` | Max concurrent ffmpeg processes. |
-| `SourceExtensions` | Extensions to convert (e.g. `flac`, `aac`). |
+| `SourceFormats` | Formats to convert, by name (e.g. `FLAC`, `AAC`). |
+| `DestinationMusicFormat` | Output format, by name (e.g. `MP3`, `FLAC`). |
 | `EnableFFMpegDebug` | Echo ffmpeg stdout/stderr. |
 | `DeleteAfterConversion` | Delete the source file once converted (otherwise renamed to `.bak`). |
 | `DeleteEmptyFolders` | Remove empty directories under the source before scanning. |
