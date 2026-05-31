@@ -19,7 +19,8 @@ namespace PulseIngestion
 
 	public class PIConfig
 	{
-		static string s_configFile = "config.txt";
+		static string s_configFile = "piConfig.json";
+		static bool s_bFirstRun = false;
 		protected static PIConfig s_activeConfig = new PIConfig();
 		// JsonStringEnumConverter writes/reads enums by name, so config.txt carries
 		// "MP3" rather than an ordinal. Read matching is case-insensitive; an unknown
@@ -68,8 +69,12 @@ namespace PulseIngestion
 #else
 			if (!File.Exists(s_configFile))
 			{
+				// First run: write defaults and signal the caller to stop so the user
+				// can edit the new file before any scanning happens.
 				s_activeConfig = new PIConfig();
 				Save();
+				s_bFirstRun = true;
+				return s_activeConfig;
 			}
 			else
 			{
@@ -78,6 +83,20 @@ namespace PulseIngestion
 #endif
 			s_activeConfig.ValidateConfig();
 			return s_activeConfig;
+		}
+
+		/// <summary>
+		/// True when Load() just created the config file for the first time. The app
+		/// should report this and exit rather than scan with untouched defaults.
+		/// </summary>
+		public static bool WasFirstRun()
+		{
+			return s_bFirstRun;
+		}
+
+		public static string GetConfigFileName()
+		{
+			return s_configFile;
 		}
 
 		private static void LoadFromFile()
