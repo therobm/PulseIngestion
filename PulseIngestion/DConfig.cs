@@ -1,52 +1,48 @@
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
-
 
 namespace PulseIngestion
 {
 	public class DConfig
 	{
-		static string ConfigFile = "config.txt";
-		public static DConfig ActiveConfig = new DConfig();
+		static string s_configFile = "config.txt";
+		public static DConfig s_activeConfig = new DConfig();
 
 		public static void Load()
 		{
-			if (!File.Exists(ConfigFile))
+			if (!File.Exists(s_configFile))
 			{
 				Save();
 			}
 			else
 			{
-				var options = new JsonSerializerOptions
+				JsonSerializerOptions options = new JsonSerializerOptions
 				{
-					IncludeFields = true    // THIS allows fields to be serialized
+					IncludeFields = true
 				};
-				string jsonString = File.ReadAllText(ConfigFile);
+				string jsonString = File.ReadAllText(s_configFile);
 				DConfig newConfig = JsonSerializer.Deserialize<DConfig>(jsonString, options);
 				if (newConfig != null)
-					ActiveConfig = newConfig;
+				{
+					s_activeConfig = newConfig;
+				}
 				else
+				{
 					Save();
+				}
 			}
-			//FFMpegLocation = File.ReadAllText(ConfigFile);
-
 		}
+
 		public static void Save()
 		{
-			var options = new JsonSerializerOptions
+			JsonSerializerOptions options = new JsonSerializerOptions
 			{
-				WriteIndented = true,   // optional, makes JSON readable
-				IncludeFields = true    // THIS allows fields to be serialized
+				WriteIndented = true,
+				IncludeFields = true
 			};
 
-			string jsonString = JsonSerializer.Serialize(ActiveConfig, options);
-			File.WriteAllText(ConfigFile, jsonString);
+			string jsonString = JsonSerializer.Serialize(s_activeConfig, options);
+			File.WriteAllText(s_configFile, jsonString);
 		}
 
 		public string FFMpegLocation = "C:\\ffmpeg\\bin\\ffmpeg.exe";
