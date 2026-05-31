@@ -13,6 +13,8 @@ survey. Each cycle emits an HTML report.
 Conversion runs as a throttled pool of concurrent ffmpeg processes (thread count
 configurable).
 
+![PulseIngestion HTML report](Docs/report.png)
+
 ## Configuration
 
 On first run the tool writes a default `config.txt` (JSON) next to the
