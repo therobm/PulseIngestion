@@ -17,9 +17,8 @@ configurable).
 
 ## Configuration
 
-On first run the tool writes a default `config.txt` (JSON) next to the
-executable and then runs against those defaults. Edit it to point at your
-environment before a real run:
+On first run the tool writes a default `piConfig.json` next to the executable
+and exits without scanning. Edit it for your environment and relaunch:
 
 | Field | Meaning |
 |---|---|

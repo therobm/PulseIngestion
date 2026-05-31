@@ -11,7 +11,10 @@ namespace PulseIngestion
 		static void Main(string[] args)
 		{
 			s_main = new Main();
-			s_main.Initialize();
+			if (!s_main.Initialize())
+			{
+				return;
+			}
 			s_main.Start();
 
 			Console.CancelKeyPress += OnCancelKeyPress;
