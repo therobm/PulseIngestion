@@ -131,7 +131,7 @@ namespace PulseIngestion
 				s_fileWriter.Close();
 			}
 
-			string filename = Path.Combine(s_logDirectory, "log_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
+			string filename = Path.Combine(s_logDirectory, "pilog_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
 			s_fileWriter = new StreamWriter(filename, false);
 			s_fileWriter.AutoFlush = true;
 			s_currentSize = 0;
@@ -141,7 +141,7 @@ namespace PulseIngestion
 
 		static void PruneOldFiles()
 		{
-			string[] files = Directory.GetFiles(s_logDirectory, "log_*.txt");
+			string[] files = Directory.GetFiles(s_logDirectory, "pilog_*.txt");
 			if (files.Length <= s_maxFiles)
 			{
 				return;
